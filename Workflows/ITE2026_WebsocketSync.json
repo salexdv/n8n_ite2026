@@ -1,0 +1,66 @@
+{
+  "name": "ITE2026-WebsocketSync",
+  "nodes": [
+    {
+      "parameters": {
+        "testExecutionBehavior": "keep_listening"
+      },
+      "type": "n8n-nodes-websocket-standalone.webSocketTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8e88c6c9-854b-4133-9037-7010d4d90a8c",
+      "name": "WebSocket Trigger"
+    },
+    {
+      "parameters": {
+        "clientMethod": "broadcast",
+        "jsonResponse": false,
+        "responseData": "={{ $json.message }}"
+      },
+      "type": "n8n-nodes-websocket-standalone.webSocketResponse",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "f414f91b-c571-4d3b-b94e-8e7103c4c4cd",
+      "name": "WebSocket Response"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "WebSocket Trigger": {
+      "main": [
+        [
+          {
+            "node": "WebSocket Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "2a3a9c1f-7a3f-444c-8a45-ede45b51840a",
+  "meta": {
+    "instanceId": "b63c7721b80e36ec7286127ad26f08ed78f3d14148cd2e30db00a82c604f3f3c"
+  },
+  "nodeGroups": [],
+  "id": "XjD9PoqQ2HdbGw5A",
+  "tags": [
+    {
+      "name": "ITE2026",
+      "id": "wOh1WyWrQOskF3ET",
+      "updatedAt": "2026-09-11T08:18:42.056Z",
+      "createdAt": "2026-09-11T08:18:42.056Z"
+    }
+  ]
+}

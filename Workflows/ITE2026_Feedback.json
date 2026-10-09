@@ -1,0 +1,402 @@
+{
+  "name": "ITE2026-Feedback",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const src = $json;\nconst feedbackId =\n  src.headers?.['x-form-answer-id'] ??\n  src.headers?.['x-delivery-id'] ??\n  `${Date.now()}-${Math.random().toString(16).slice(2)}`;\n\nreturn [{\n  json: {\n    feedback_id: String(feedbackId),\n    ...src.body,\n    created_at: new Date().toISOString()\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "5862b58c-2309-46be-a110-5acabe82b65f",
+      "name": "Prepare SET"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "feedback",
+        "fields": "=feedback_id,task_id,result,comment,created_at",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.1,
+      "position": [
+        192,
+        0
+      ],
+      "id": "5dddacd0-ae1b-4438-854c-d21923ec00cc",
+      "name": "Mongo SET",
+      "credentials": {
+        "mongoDb": {
+          "id": "xZaKVCTrORs7LywD",
+          "name": "MongoDB feedback"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(item => {\n  const j = item.json;\n  const { id: mongoInsertedId, _id, feedback_id, ...body } = j;\n  return {\n    json: {\n      ok: true,\n      id: feedback_id,\n      record: {\n        id: feedback_id,\n        ...body\n      }\n    }\n  };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        0
+      ],
+      "id": "e461b48b-5c0f-4ad6-b452-ff752399e224",
+      "name": "Format SET"
+    },
+    {
+      "parameters": {
+        "collection": "feedback",
+        "options": {
+          "sort": "{\"created_at\": -1}"
+        }
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.1,
+      "position": [
+        192,
+        224
+      ],
+      "id": "32f9fc2b-b3df-4cc2-ae42-4162c9a5adb3",
+      "name": "Mongo GET",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "xZaKVCTrORs7LywD",
+          "name": "MongoDB feedback"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const records = $input.all()\n  .map(item => item.json)\n  .filter(j => j && Object.keys(j).length > 0)\n  .map(j => {\n    const { _id, feedback_id, ...body } = j;\n    return {\n      id: feedback_id,\n      ...body\n    };\n  });\n\nreturn [{\n  json: {\n    ok: true,\n    count: records.length,\n    records\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        224
+      ],
+      "id": "b107f4b7-d109-4a36-8b2a-7e402abdcc71",
+      "name": "Format GET"
+    },
+    {
+      "parameters": {
+        "jsCode": "const id = $json.query?.id ?? $json.body?.id;\n\nif (id === undefined || id === null || String(id).trim() === '') {\n  throw new Error('action=ack requires id in query (?action=ack&id=...) or body ({\"id\":\"...\"})');\n}\n\nreturn [{\n  json: {\n    id: String(id)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        448
+      ],
+      "id": "b8b830bc-defb-459e-82af-c7bb7e3a9799",
+      "name": "Prepare ACK"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "collection": "feedback",
+        "query": "={\n  \"feedback_id\": \"{{ $json.id }}\"\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.1,
+      "position": [
+        192,
+        448
+      ],
+      "id": "d90c3d58-5f96-4a4b-9682-fd765a26f6a8",
+      "name": "Mongo ACK",
+      "credentials": {
+        "mongoDb": {
+          "id": "xZaKVCTrORs7LywD",
+          "name": "MongoDB feedback"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    ok: true,\n    id: $('Prepare ACK').first().json.id,\n    deleted: $json.deletedCount ?? 0\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        448
+      ],
+      "id": "e899ad3c-5d34-47bf-96c8-82ebc9ff0df0",
+      "name": "Format ACK"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        608,
+        224
+      ],
+      "id": "1429eeb3-4572-4739-84b8-00a3858e61cf",
+      "name": "Respond ACK"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "feedback",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -368,
+        224
+      ],
+      "id": "c445c8ce-2aa5-4b3e-a5ae-54eca86e88d9",
+      "name": "Webhook1",
+      "webhookId": "3e1cbda3-ba6b-4e80-a6c6-5e7e6529957d"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.query.action }}",
+                    "rightValue": "set",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "ea583727-6540-44d5-b631-53eccc2bf6b4"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "set"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.query.action }}",
+                    "rightValue": "get",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "97172860-659a-4b43-9923-1e4512df498a"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "get"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.query.action }}",
+                    "rightValue": "ack",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "18d2a90c-476a-4ed2-b8ae-ecdcc365169f"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ack"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -208,
+        208
+      ],
+      "id": "cbdbb403-6509-4b9b-807b-c42bf36927c3",
+      "name": "Switch1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Prepare SET": {
+      "main": [
+        [
+          {
+            "node": "Mongo SET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mongo SET": {
+      "main": [
+        [
+          {
+            "node": "Format SET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format SET": {
+      "main": [
+        [
+          {
+            "node": "Respond ACK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mongo GET": {
+      "main": [
+        [
+          {
+            "node": "Format GET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format GET": {
+      "main": [
+        [
+          {
+            "node": "Respond ACK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare ACK": {
+      "main": [
+        [
+          {
+            "node": "Mongo ACK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mongo ACK": {
+      "main": [
+        [
+          {
+            "node": "Format ACK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format ACK": {
+      "main": [
+        [
+          {
+            "node": "Respond ACK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Switch1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch1": {
+      "main": [
+        [
+          {
+            "node": "Prepare SET",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mongo GET",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Prepare ACK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a3b3b3e8-30ee-4872-978f-2caefe921389",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b63c7721b80e36ec7286127ad26f08ed78f3d14148cd2e30db00a82c604f3f3c"
+  },
+  "nodeGroups": [],
+  "id": "u1Jigy8I8JH0twT4",
+  "tags": [
+    {
+      "name": "ITE2026",
+      "id": "wOh1WyWrQOskF3ET",
+      "updatedAt": "2026-09-11T08:18:42.056Z",
+      "createdAt": "2026-09-11T08:18:42.056Z"
+    }
+  ]
+}

@@ -1,0 +1,1362 @@
+{
+  "name": "ITE2026-KaitenBitrix24",
+  "nodes": [
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.event }}",
+                    "rightValue": "card_time_log:update",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "7cbce374-8910-45a4-9a2f-b1ab2f62bdbc"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "8ada9b98-269e-43fe-9f6b-6abdcee4e858",
+                    "leftValue": "={{ $json.body.event }}",
+                    "rightValue": "card_time_log:add",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "7272a92a-6f39-440c-b060-bf7b740cc6e8",
+                    "leftValue": "={{ $json.body.event }}",
+                    "rightValue": "card_time_log:remove",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        0,
+        240
+      ],
+      "id": "4d7bc3e6-35ca-41d0-bb63-1c8fa9a6fa41",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "832cf20a-7623-46e2-8422-e182cd7590af",
+              "name": "event",
+              "value": "={{ $json.body.event }}",
+              "type": "string"
+            },
+            {
+              "id": "3b9a5443-47f8-4700-a322-71eca998b667",
+              "name": "username",
+              "value": "={{ $json.body.data.author.full_name }}",
+              "type": "string"
+            },
+            {
+              "id": "0a178a48-fb72-4032-8229-60aa71f1fda2",
+              "name": "changes",
+              "value": "={{ $json.body.data.changes }}",
+              "type": "object"
+            },
+            {
+              "id": "cb9d16b0-5edd-43eb-ad17-ef577eccad04",
+              "name": "old.role_id",
+              "value": "={{ $json.body.data.old.role_id }}",
+              "type": "number"
+            },
+            {
+              "id": "6828fba5-09a7-4637-8c52-df9607fe5237",
+              "name": "card_id",
+              "value": "={{ $json.body.data.old.card_id }}",
+              "type": "number"
+            },
+            {
+              "id": "c6508a5a-43ab-4095-a6ea-1cf449e1d44e",
+              "name": "old.time_spent",
+              "value": "={{ $json.body.data.old.time_spent }}",
+              "type": "number"
+            },
+            {
+              "id": "9caa4932-00ea-470d-b222-2ab5084bd209",
+              "name": "time_id",
+              "value": "={{ $json.body.data.old.id }}",
+              "type": "number"
+            },
+            {
+              "id": "ff64df8f-150f-4035-954d-36df529f5448",
+              "name": "old.updated",
+              "value": "={{ $json.body.data.old.updated }}",
+              "type": "string"
+            },
+            {
+              "id": "183045fb-a863-4478-96b3-af6d2129c1d6",
+              "name": "comment",
+              "value": "={{ $json.body.data.changes?.comment ?? $json.body.data.old?.comment ?? \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "7a057274-a7cc-419c-bfd1-5899f5956406",
+              "name": "for_date",
+              "value": "={{ $json.body.data.changes?.for_date ?? $json.body.data.old?.for_date ?? \"\" }}",
+              "type": "string"
+            },
+            {
+              "id": "e14d6acf-2f49-4cb5-863c-93815d442a7f",
+              "name": "updated",
+              "value": "={{ $json.body.data.old.updated }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        368,
+        112
+      ],
+      "id": "29eb18d1-a9c8-4995-a73a-669660843ad3",
+      "name": "update time log"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7fbbbc8a-e738-4981-9a48-b4213ce676c4",
+              "name": "event",
+              "value": "={{ $json.body.event }}",
+              "type": "string"
+            },
+            {
+              "id": "02c1913d-3d48-4a47-9557-6b739709602c",
+              "name": "username",
+              "value": "={{ $json.body.data.author.full_name }}",
+              "type": "string"
+            },
+            {
+              "id": "a8ae2d3b-6cd0-418f-84f7-7a5542589856",
+              "name": "time_id",
+              "value": "={{ $json.body.data.id }}",
+              "type": "number"
+            },
+            {
+              "id": "a875ebe6-5a51-4025-9ab3-8b61e544758b",
+              "name": "time_spent",
+              "value": "={{ $json.body.data.time_spent }}",
+              "type": "number"
+            },
+            {
+              "id": "a171aa72-82c1-4160-baee-4d38205fa0fb",
+              "name": "comment",
+              "value": "={{ $json.body.data.comment }}",
+              "type": "string"
+            },
+            {
+              "id": "4fc7a22a-5e30-4710-a2c1-eb18d60bf947",
+              "name": "updated",
+              "value": "={{ $json.body.data.updated }}",
+              "type": "string"
+            },
+            {
+              "id": "6eb52f74-2d05-4b25-8f74-f91454ae74bc",
+              "name": "role_id",
+              "value": "={{ $json.body.data.role_id }}",
+              "type": "number"
+            },
+            {
+              "id": "f8b96e0c-6bef-4f6a-a3da-ee78658911a8",
+              "name": "card_id",
+              "value": "={{ $json.body.data.card_id }}",
+              "type": "number"
+            },
+            {
+              "id": "18448075-0202-4f7c-822d-09d7c1398484",
+              "name": "for_date",
+              "value": "={{ $json.body.data.for_date }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        368,
+        304
+      ],
+      "id": "e3963d46-bbb1-467a-92d9-b3af22163727",
+      "name": "add time log"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "82a9184f-5787-483f-b17a-81311c1946f8",
+              "name": "event",
+              "value": "={{ $json.body.event }}",
+              "type": "string"
+            },
+            {
+              "id": "30802e00-38c3-4353-875e-353cab443c51",
+              "name": "username",
+              "value": "={{ $json.body.data.author.full_name }}",
+              "type": "string"
+            },
+            {
+              "id": "bea39798-4c5d-4869-85fb-667df5780681",
+              "name": "card_id",
+              "value": "={{ $json.body.data.card_id }}",
+              "type": "number"
+            },
+            {
+              "id": "055c0fd3-faf2-4f33-b21a-5f2be9b55e1e",
+              "name": "time_id",
+              "value": "={{ $json.body.data.id }}",
+              "type": "number"
+            },
+            {
+              "id": "0ac84b8c-6e7c-4ba9-8468-185c49bcac4b",
+              "name": "updated",
+              "value": "={{ $json.body.data.updated }}",
+              "type": "string"
+            },
+            {
+              "id": "d275138f-4a9b-490d-95e3-22dd4cc30ef4",
+              "name": "role_id",
+              "value": "={{ $json.body.data.role_id }}",
+              "type": "number"
+            },
+            {
+              "id": "0faa2c02-2b39-4e0f-87bb-0443488d2eae",
+              "name": "time_spent",
+              "value": 0,
+              "type": "number"
+            },
+            {
+              "id": "5aa821d6-7750-4d59-8105-2c8e76a9edcd",
+              "name": "comment",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "ac8b14c6-155e-493d-8807-a0a66c9e573c",
+              "name": "for_date",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        368,
+        512
+      ],
+      "id": "6b22ad14-a3d7-4c7d-8831-3889a4332589",
+      "name": "remove time log"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "e89d67ed-6f36-402a-92b5-edbe56e2e05e",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        272
+      ],
+      "id": "d21ee509-aa7c-4868-8303-5bd17b3becee",
+      "name": "Kaiten external webhook",
+      "webhookId": "e89d67ed-6f36-402a-92b5-edbe56e2e05e",
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "url": "=https://example.kaiten.ru/api/latest/cards/{{ $json.card_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        672,
+        208
+      ],
+      "id": "1eeffa2a-5268-4f9e-a317-97a64fc18d52",
+      "name": "get external_id",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "XzSSMgWQrnRSYE3L",
+          "name": "OpenRouter Image API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://example.kaiten.ru/api/latest/user-roles/{{ $json.changes?.role_id ?? $json.old?.role_id ?? $json.role_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        672,
+        448
+      ],
+      "id": "44ee0e7d-8f50-44d1-b863-421f69cb935a",
+      "name": "get role_name",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "XzSSMgWQrnRSYE3L",
+          "name": "OpenRouter Image API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combineBySql",
+        "query": "SELECT input1.external_id as bitrix_id, input2.name as role_name FROM input1 LEFT JOIN input2 ON TRUE",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        912,
+        320
+      ],
+      "id": "39a1f910-2a5f-465e-ae6a-77a4b44e9f21",
+      "name": "external_id + role_name"
+    },
+    {
+      "parameters": {
+        "mode": "combineBySql",
+        "query": "SELECT \n\tinput2.event,\n    input1.bitrix_id,\n    input1.role_name,\n    input2.username,\n    input2.card_id,\n    input2.for_date,\n    input2.time_id,\n    CASE\n        WHEN input2.changes.time_spent > 0 THEN input2.changes.time_spent\n        WHEN input2.old.time_spent > 0 THEN input2.old.time_spent\n        ELSE input2.time_spent\n    END AS time_spent,\n    input2.updated,\n    input2.comment\nFROM input1\nLEFT JOIN input2 ON TRUE",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        1168,
+        80
+      ],
+      "id": "d4aafcbc-2a06-4611-b615-b9bdc211589b",
+      "name": "union all"
+    },
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        2432,
+        48
+      ],
+      "id": "0ad4960d-1e4f-4509-98a9-5ca630f0576e",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        672
+      ],
+      "id": "1a586634-4948-4c22-95b0-f336d7b46a7b",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "dff1d81d-f9a9-4c9e-a4e4-69a3bcffafd9",
+              "leftValue": "={{ $json.bitrix_id }}",
+              "rightValue": "null",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1504,
+        80
+      ],
+      "id": "ccd3fe6d-8350-41c3-9b08-b6c782182c02",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1904,
+        320
+      ],
+      "id": "215381bc-23e2-4a1e-887f-9d5666de319a",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "=sync-log",
+        "fields": "=currentDate, event, bitrix_id, role_name, username, for_date, time_id, time_spent, updated, comment",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.1,
+      "position": [
+        1600,
+        304
+      ],
+      "id": "fef1b931-8e9c-4ab0-b90f-e656130c1467",
+      "name": "log response",
+      "credentials": {
+        "mongoDb": {
+          "id": "xZaKVCTrORs7LywD",
+          "name": "MongoDB feedback"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "=sync-errors",
+        "fields": "=event, bitrix_id, role_name, username, cart_id, for_date, time_id, time_spent, updated, comment",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.1,
+      "position": [
+        2144,
+        192
+      ],
+      "id": "0e71cbcb-8969-4f72-8309-95608f13cd6f",
+      "name": "save response",
+      "credentials": {
+        "mongoDb": {
+          "id": "xZaKVCTrORs7LywD",
+          "name": "MongoDB feedback"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://bitrix.example.ru/b24-kaiten-task-integration/webhooks/kaiten-event",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1872,
+        64
+      ],
+      "id": "c1e42c9c-d092-40f7-b06b-06c949ee0031",
+      "name": "pull bitrix",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "maxTries": 5,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "options": {
+          "includeInputFields": true,
+          "timezone": "Europe/Moscow"
+        }
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        304
+      ],
+      "id": "e747be93-4e9d-4d88-8281-69188608d9fb",
+      "name": "add current time"
+    },
+    {
+      "parameters": {
+        "options": {
+          "includeInputFields": true,
+          "timezone": "Europe/Moscow"
+        }
+      },
+      "type": "n8n-nodes-base.dateTime",
+      "typeVersion": 2,
+      "position": [
+        -304,
+        272
+      ],
+      "id": "aa3f8688-89cc-4c21-9e01-950c0eaa1675",
+      "name": "add current time1"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "=sync-log",
+        "fields": "=currentDate, body",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "4231d2ec-3339-48f5-b331-4c13cf56b7ba",
+      "name": "log request",
+      "credentials": {
+        "mongoDb": {
+          "id": "xZaKVCTrORs7LywD",
+          "name": "MongoDB feedback"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6a2f88ef-6279-4e27-81a9-14a28334be0a",
+              "leftValue": "={{ $json.body.event }}",
+              "rightValue": "card_time_log:update",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "1f43b37e-8585-4b06-995e-7d4c15f2aba9",
+              "leftValue": "={{ $json.body.event }}",
+              "rightValue": "card_time_log:add",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "d741581c-4b1c-4d42-91a1-12e9a4da7764",
+              "leftValue": "={{ $json.body.event }}",
+              "rightValue": "=card_time_log:remove",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -624,
+        272
+      ],
+      "id": "56c4ad7b-18bf-41ca-9356-b61c6c8839a7",
+      "name": "if card_time_log"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6a2f88ef-6279-4e27-81a9-14a28334be0a",
+              "leftValue": "={{ $json.body.event }}",
+              "rightValue": "card:update",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "c9d53a69-c896-4714-898b-3ece0dc0ed53",
+              "leftValue": "={{ $json.body.data.old.external_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "1f43b37e-8585-4b06-995e-7d4c15f2aba9",
+              "leftValue": "={{ $json.body.data.old }}",
+              "rightValue": "card_time_log:add",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "1248317f-8e23-4efb-856d-2a9f72fd1076",
+              "leftValue": "={{ $json.body.data.changes }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "bfaad4cd-cd53-4ba1-8e0a-bf359bc1239a",
+              "leftValue": "={{ $json.body.data.old.column_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "ca4f4094-5103-4586-b009-11fce77c471a",
+              "leftValue": "={{ $json.body.data.changes.column_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "d4f998ad-672e-4049-aa00-5c7d7c3b1509",
+              "leftValue": "={{ $json.body.data.old.column_id }}",
+              "rightValue": "={{ $json.body.data.changes.column_id }}",
+              "operator": {
+                "type": "number",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -624,
+        640
+      ],
+      "id": "0e78686e-60af-4aef-8838-1b54b298337b",
+      "name": "If card column update"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2eb856ca-6f9a-4434-90b6-f17dccdc28d9",
+              "name": "event",
+              "value": "column_changed",
+              "type": "string"
+            },
+            {
+              "id": "f1407210-6bfd-46b5-866e-8503ca7e2e89",
+              "name": "old_board_id",
+              "value": "={{ $json.body.data.old.board_id }}",
+              "type": "number"
+            },
+            {
+              "id": "cfe3bc68-b7d8-45cc-8bf1-9fb9d5d26663",
+              "name": "old_column_id",
+              "value": "={{ $json.body.data.old.column_id }}",
+              "type": "number"
+            },
+            {
+              "id": "6b0df454-7902-4254-8141-96be1a483c29",
+              "name": "old_column_changed_at",
+              "value": "={{ $json.body.data.old.column_changed_at }}",
+              "type": "string"
+            },
+            {
+              "id": "03453d51-8dcb-470c-a013-73a5ca92394b",
+              "name": "=new_board_id",
+              "value": "={{ $json.body.data.changes?.board_id ?? $json.body.data.old.board_id ?? 0 }}",
+              "type": "number"
+            },
+            {
+              "id": "a3de0222-b250-4d7a-bffa-52c57cdd8fc1",
+              "name": "new_column_id",
+              "value": "={{ $json.body.data.changes.column_id }}",
+              "type": "number"
+            },
+            {
+              "id": "1c99400f-b90e-4a55-9d96-8135f05b5747",
+              "name": "new_column_chenged_at",
+              "value": "={{ $json.body.data.changes.column_changed_at }}",
+              "type": "string"
+            },
+            {
+              "id": "dba26d0b-9fc0-4b2c-930e-c2a8c85879ea",
+              "name": "username",
+              "value": "={{ $json.body.data.author.full_name }}",
+              "type": "string"
+            },
+            {
+              "id": "82c4cd70-c1d0-4510-be4f-9fc1a88aa6f3",
+              "name": "bitrix_id",
+              "value": "={{ $json.body.data.old.external_id }}",
+              "type": "string"
+            },
+            {
+              "id": "ee15e496-75bb-4436-8778-a98eb69070b7",
+              "name": "card_id",
+              "value": "={{ $json.body.data.old.id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -320,
+        960
+      ],
+      "id": "51b7c77c-dc47-441f-914d-4b996c852c43",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "url": "=https://example.kaiten.ru/api/latest/boards/{{ $json.old_board_id }}/columns",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        848
+      ],
+      "id": "f1e18218-b124-41d4-8a89-fceb03a5d69f",
+      "name": "get old column name",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1344,
+        992
+      ],
+      "id": "c1d18ecb-b9e1-4c85-a0ae-1ac7267427bf",
+      "name": "Respond to Webhook3"
+    },
+    {
+      "parameters": {
+        "url": "=https://example.kaiten.ru/api/latest/boards/{{ $json.new_board_id }}/columns",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        1088
+      ],
+      "id": "c7dc1804-4e2f-4c70-bc87-3ab0a3956b51",
+      "name": "get new column name",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "mode": "combineBySql",
+        "query": "SELECT * FROM input1 LEFT JOIN input2 ON TRUE",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        752,
+        992
+      ],
+      "id": "10917e67-c75a-4fcc-8d0f-427c24d55057",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "mode": "combineBySql",
+        "query": "SELECT input2.*, input1.title as old_column_title FROM input2 LEFT JOIN input1 ON input2.old_column_id = input1.id",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        368,
+        928
+      ],
+      "id": "ad20323a-0616-4607-92cb-bd2256f5ed02",
+      "name": "merge old column name"
+    },
+    {
+      "parameters": {
+        "mode": "combineBySql",
+        "query": "SELECT input1.*, input2.title as new_column_title FROM input1 LEFT JOIN input2 ON input1.new_column_id = input2.id",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.1,
+      "position": [
+        368,
+        1072
+      ],
+      "id": "1af4467b-148c-41b7-bbaa-f48e86229911",
+      "name": "merge new column name"
+    },
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        1360
+      ],
+      "id": "18affa2c-8e79-4a4c-9869-f8abdbefe7f4",
+      "name": "Respond to Webhook4"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "=sync-columns",
+        "fields": "=event, bitrix_id, card_id, old_column_title, old_column_changed_at, new_column_title, new_column_chenged_at, username",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.1,
+      "position": [
+        1072,
+        992
+      ],
+      "id": "a38e5fd0-d4d6-43ef-92b7-4800b91d3150",
+      "name": "save response1",
+      "credentials": {
+        "mongoDb": {
+          "id": "xZaKVCTrORs7LywD",
+          "name": "MongoDB feedback"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "update time log",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "add time log",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "remove time log",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Kaiten external webhook": {
+      "main": [
+        [
+          {
+            "node": "if card_time_log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "add time log": {
+      "main": [
+        [
+          {
+            "node": "get external_id",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "get role_name",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "union all",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "remove time log": {
+      "main": [
+        [
+          {
+            "node": "get external_id",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "get role_name",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "union all",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "update time log": {
+      "main": [
+        [
+          {
+            "node": "get external_id",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "get role_name",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "union all",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "get external_id": {
+      "main": [
+        [
+          {
+            "node": "external_id + role_name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get role_name": {
+      "main": [
+        [
+          {
+            "node": "external_id + role_name",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "external_id + role_name": {
+      "main": [
+        [
+          {
+            "node": "union all",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "union all": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "add current time",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "pull bitrix",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "save response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "pull bitrix": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "save response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "add current time": {
+      "main": [
+        [
+          {
+            "node": "log response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "add current time1": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "log request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "if card_time_log": {
+      "main": [
+        [
+          {
+            "node": "add current time1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If card column update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If card column update": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "get old column name",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "get new column name",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "merge old column name",
+            "type": "main",
+            "index": 1
+          },
+          {
+            "node": "merge new column name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get old column name": {
+      "main": [
+        [
+          {
+            "node": "merge old column name",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get new column name": {
+      "main": [
+        [
+          {
+            "node": "merge new column name",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "save response1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "merge old column name": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "merge new column name": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "save response1": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a1e889b5-4af5-4f8f-bdef-12061b0a24e3",
+  "meta": {
+    "instanceId": "b63c7721b80e36ec7286127ad26f08ed78f3d14148cd2e30db00a82c604f3f3c"
+  },
+  "nodeGroups": [],
+  "id": "F0Obl5CgcpkxE071",
+  "tags": [
+    {
+      "name": "ITE2026",
+      "id": "wOh1WyWrQOskF3ET",
+      "updatedAt": "2026-09-11T08:18:42.056Z",
+      "createdAt": "2026-09-11T08:18:42.056Z"
+    }
+  ]
+}

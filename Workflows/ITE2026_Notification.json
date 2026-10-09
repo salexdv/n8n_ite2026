@@ -1,0 +1,157 @@
+{
+  "name": "ITE2026-Notification",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "376e5043-f098-4989-b829-09eaa7dad88d",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        160
+      ],
+      "id": "2562791e-e522-4363-a621-ffcd6afd1e7f",
+      "name": "Webhook",
+      "webhookId": "376e5043-f098-4989-b829-09eaa7dad88d"
+    },
+    {
+      "parameters": {
+        "message": "={{ $json.query.text }}",
+        "additionalFields": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gotify",
+      "typeVersion": 1,
+      "position": [
+        0,
+        160
+      ],
+      "id": "b71789db-3ea9-4e4b-90ab-2ad31cf550e1",
+      "name": "Gotify",
+      "credentials": {
+        "gotifyApi": {
+          "id": "8IGuU2S7mKokAxwb",
+          "name": "Gotify account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "112386425",
+        "text": "={{ $json.query.text }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "3696c86e-e02e-45c9-8b54-6f2ac0be531d",
+      "name": "Telegram",
+      "webhookId": "5daba34c-83c1-4e6b-aef0-f69e89e5a9d0",
+      "retryOnFail": false,
+      "credentials": {
+        "telegramApi": {
+          "id": "dH5QrYgDnxFQezzL",
+          "name": "ITE2026 Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "userId": "123",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-max.maxMessage",
+      "typeVersion": 1,
+      "position": [
+        0,
+        368
+      ],
+      "id": "3f19d7e0-c86e-4da8-b4e0-b8c2be7ea925",
+      "name": "Max Message",
+      "credentials": {
+        "maxApi": {
+          "id": "QhXdcVKzLrQFdaQX",
+          "name": "Max account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "connection": "close",
+            "host": "n8n.shkuraev.ru",
+            "x-real-ip": "192.168.1.1",
+            "x-forwarded-for": "192.168.1.1",
+            "x-forwarded-proto": "https",
+            "accept": "application/json, text/plain, */*",
+            "user-agent": "bruno-runtime/4.0.0",
+            "authorization": "Basic ***************************",
+            "request-start-time": "1788594985762",
+            "accept-encoding": "gzip, compress, deflate, br"
+          },
+          "params": {},
+          "query": {
+            "text": "✅ ERP_PRODUCTION: обновление базы успешно завершено"
+          },
+          "body": {},
+          "webhookUrl": "https://n8n.shkuraev.ru/webhook-test/a30b1fbe-0dfb-4947-b268-591c640c7cef",
+          "executionMode": "test"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Telegram",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Gotify",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Max Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6365cb63-0cba-4366-8e94-0b80aa5269fa",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b63c7721b80e36ec7286127ad26f08ed78f3d14148cd2e30db00a82c604f3f3c"
+  },
+  "nodeGroups": [],
+  "id": "gs6NooRaV03dGxWZ",
+  "tags": [
+    {
+      "name": "ITE2026",
+      "id": "wOh1WyWrQOskF3ET",
+      "updatedAt": "2026-09-11T08:18:42.056Z",
+      "createdAt": "2026-09-11T08:18:42.056Z"
+    }
+  ]
+}

@@ -1,0 +1,758 @@
+{
+  "name": "ITE2026-MoneySync",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "37b003b0-d5e9-4ce7-93e0-c01ba218d45b",
+        "authentication": "basicAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -1088,
+        512
+      ],
+      "id": "c6d64139-1f28-410c-82f0-5b0036665bc6",
+      "name": "Webhook",
+      "webhookId": "37b003b0-d5e9-4ce7-93e0-c01ba218d45b",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "SPxaGWUhmCaCfIao",
+          "name": "ai generation auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2793c08c-1cdf-490b-ae78-cb4099ea862f",
+              "name": "uid",
+              "value": "={{ $json.body.uid }}",
+              "type": "string"
+            },
+            {
+              "id": "1a36e21c-4f57-4b6f-905b-a1106c6b6eaa",
+              "name": "created",
+              "value": "={{ $json.body.created }}",
+              "type": "string"
+            },
+            {
+              "id": "72bf5504-3229-4d95-89af-44467fa02c8d",
+              "name": "device",
+              "value": "={{ $json.body.device }}",
+              "type": "string"
+            },
+            {
+              "id": "7c360446-f2db-45bf-975b-2059cc05e2cb",
+              "name": "data",
+              "value": "={{ $json.body.data }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -560,
+        112
+      ],
+      "id": "5ddb493e-568b-4e3d-8464-a1f94cd967a1",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a97c14ca-8cac-47e4-8274-f582adec2205",
+              "name": "device",
+              "value": "={{ $json.body.device }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -560,
+        480
+      ],
+      "id": "5d37fa42-d921-48eb-8ec6-f403a42de09f",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e624a629-c930-4bc8-aa3a-4d661bde7789",
+              "name": "device",
+              "value": "={{ $json.body.device }}",
+              "type": "string"
+            },
+            {
+              "id": "7f9a03e1-90cd-4821-b7e0-c5af85a775d8",
+              "name": "uids",
+              "value": "={{ $json.body.uids }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -560,
+        912
+      ],
+      "id": "dd9a1f53-27f2-4e81-9d68-ba599c1a76cd",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"unknown request\"\n}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -848,
+        784
+      ],
+      "id": "34aac590-9d89-4eba-8779-471a6c77736b",
+      "name": "unknown request"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "money-data",
+        "fields": "=uid, created, device, data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.1,
+      "position": [
+        -320,
+        112
+      ],
+      "id": "b82b6c2d-4de5-4755-8ccc-824f4c2a7d95",
+      "name": "Запись документов в базу",
+      "credentials": {
+        "mongoDb": {
+          "id": "xZaKVCTrORs7LywD",
+          "name": "MongoDB feedback"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "money-sync",
+        "fields": "=device, uid",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b4c8b0db-184f-46b9-b35b-fb2b27d5fe12",
+      "name": "Запись id-устройства в базу",
+      "credentials": {
+        "mongoDb": {
+          "id": "xZaKVCTrORs7LywD",
+          "name": "MongoDB feedback"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "collection": "money-sync",
+        "options": {},
+        "query": "={ \"device\": \"{{ $json.device }}\" }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.1,
+      "position": [
+        -336,
+        480
+      ],
+      "id": "b416061d-8916-4d56-b247-bd3031400a34",
+      "name": "Получение id загруженных документов",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "xZaKVCTrORs7LywD",
+          "name": "MongoDB feedback"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "collection": "money-data",
+        "options": {
+          "limit": 25,
+          "sort": "{ \"_id\": 1 }"
+        },
+        "query": "={ \"uid\": { \"$nin\": {{ JSON.stringify($json.uids) }} } }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.1,
+      "position": [
+        112,
+        352
+      ],
+      "id": "a0fa2207-f205-401d-9a68-5bb937e7ad45",
+      "name": "Получение новых документов для устройства",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "xZaKVCTrORs7LywD",
+          "name": "MongoDB feedback"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "money-sync",
+        "fields": "=device, uid",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.1,
+      "position": [
+        -16,
+        864
+      ],
+      "id": "ac047895-8558-41f0-bc22-3972303774fa",
+      "name": "Запись подтверждения загрузки",
+      "credentials": {
+        "mongoDb": {
+          "id": "xZaKVCTrORs7LywD",
+          "name": "MongoDB feedback"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "write",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "52d83fb4-f3f4-4547-a9ab-79cc0a4bb047"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "write"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "9921ba33-9d86-46b2-b6da-65c3a779d3dd",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "read",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "read"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "a0ab29cd-fa04-4677-a9de-fb30552ea0e7",
+                    "leftValue": "={{ $json.body.action }}",
+                    "rightValue": "ack",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "ack"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -848,
+        480
+      ],
+      "id": "1eb51cc2-1779-4fff-8a9b-e900b9f74f18",
+      "name": "Определения типа запроса",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const message = $input.first().json;\nreturn message.uids.map(uid => { return {\"device\": message.device, \"uid\": uid} })"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -320,
+        912
+      ],
+      "id": "53045b44-a024-4dc5-8f00-90fce89529f9",
+      "name": "Подготовка подтверждений",
+      "retryOnFail": false,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "return { uids : $input.all().map(item => item.json.uid) };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        400
+      ],
+      "id": "45e6a646-2539-457b-901d-843a6a112a9b",
+      "name": "Получения массива id",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"database error (write error)\"\n}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        224
+      ],
+      "id": "499c3c61-3717-47e8-bd74-50789ff4ff36",
+      "name": "write error"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"result\": \"ok\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        48
+      ],
+      "id": "3b6353c0-07f7-490d-b7d0-a5308e5457ef",
+      "name": "ок"
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        384
+      ],
+      "id": "dd7122f3-41f2-4314-bfde-ab7b6582f12b",
+      "name": "ok"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"result\": \"ok\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        864
+      ],
+      "id": "7b198937-c533-4772-a8be-b203aa52abdd",
+      "name": "ок1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"code error (map id)\"\n}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        112,
+        688
+      ],
+      "id": "53690eb4-a67b-4cd5-bd5f-d41a547daa68",
+      "name": "code error 1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"code error (map ack)\"\n}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -16,
+        1120
+      ],
+      "id": "64371a20-bc94-48d7-a7ab-c5866d48ebb7",
+      "name": "code error 2",
+      "notesInFlow": false
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"database error (read uid error)\"\n}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -144,
+        688
+      ],
+      "id": "609b3c6d-fd3e-4b2a-897d-e7e31e43bf55",
+      "name": "read error 1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"database error (read docs error)\"\n}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        352,
+        592
+      ],
+      "id": "0ca5c49e-8ae0-47db-b511-061aa9732ff3",
+      "name": "read error 2"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "connection": "close",
+            "host": "n8n.shkuraev.ru",
+            "x-real-ip": "192.168.1.1",
+            "x-forwarded-for": "192.168.1.1",
+            "x-forwarded-proto": "https",
+            "content-length": "1367",
+            "authorization": "Basic ***************************",
+            "user-agent": "1C+Enterprise/8.3",
+            "accept": "*/*",
+            "content-type": "application/json"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "action": "write",
+            "uid": "1b94caf3-df75-4b8e-8361-74b6ce70aee7",
+            "device": "2fb0c0af-85ed-4de1-828d-dbcc01cbc28b",
+            "data": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Данные ДатаВыгрузки=\"20250417040727\"><Объекты><Элемент Вид=\"ДокументСсылка.Расход\" Проведен=\"Да\" ПометкаУдаления=\"Нет\" Идентификатор=\"837c4935-f879-3077-3bf8-0f8fe43ee69f\" Дата=\"20250412120000\" Кошелек=\"3e2b4084-6693-11e0-a816-080027005419\" Статьи=\"Продукты, Медикаменты, Обувь, Кафе\" СуммаДокумента=\"10647.00\" Примечание=\"По данным SMS\"><Суммы><СтрокаТЧ Статья=\"84a24344-674f-11e0-a817-080027005419\" Сумма=\"386.00\" Примечание=\"17:48 PEREKRESTO\"/><СтрокаТЧ Статья=\"5ff3b349-d32e-11e0-a5b7-1c6f65c56a30\" Сумма=\"402.00\" Примечание=\"17:42 APTEKA ALOE\"/><СтрокаТЧ Статья=\"9f17afe7-d3a7-11e0-a8c7-a3e90831c260\" Сумма=\"8489.00\" Примечание=\"17:39 RIEKER\"/><СтрокаТЧ Статья=\"02d6f2b0-0192-11e1-ac7c-1c6f65c56a30\" Сумма=\"1370.00\" Примечание=\"12:39 KAFE SHTOLLE\"/></Суммы></Элемент></Объекты></Данные>",
+            "created": "2025-04-17 16:07:27"
+          },
+          "webhookUrl": "https://n8n.shkuraev.ru/webhook/37b003b0-d5e9-4ce7-93e0-c01ba218d45b",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Определения типа запроса",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Запись документов в базу",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Получение id загруженных документов",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Подготовка подтверждений",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Запись документов в базу": {
+      "main": [
+        [
+          {
+            "node": "Запись id-устройства в базу",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "write error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Получение id загруженных документов": {
+      "main": [
+        [
+          {
+            "node": "Получения массива id",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "read error 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Получение новых документов для устройства": {
+      "main": [
+        [
+          {
+            "node": "ok",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "read error 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Запись подтверждения загрузки": {
+      "main": [
+        [
+          {
+            "node": "ок1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Определения типа запроса": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "unknown request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Подготовка подтверждений": {
+      "main": [
+        [
+          {
+            "node": "Запись подтверждения загрузки",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "code error 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Получения массива id": {
+      "main": [
+        [
+          {
+            "node": "Получение новых документов для устройства",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "code error 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Запись id-устройства в базу": {
+      "main": [
+        [
+          {
+            "node": "ок",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "write error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "1bd29beb-f0b6-4bd2-b13f-b1ab59134432",
+  "meta": {
+    "instanceId": "b63c7721b80e36ec7286127ad26f08ed78f3d14148cd2e30db00a82c604f3f3c"
+  },
+  "nodeGroups": [],
+  "id": "Tan9V7M39nO2VWv9",
+  "tags": [
+    {
+      "name": "ITE2026",
+      "id": "wOh1WyWrQOskF3ET",
+      "updatedAt": "2026-09-11T08:18:42.056Z",
+      "createdAt": "2026-09-11T08:18:42.056Z"
+    }
+  ]
+}

@@ -1,0 +1,752 @@
+{
+  "name": "ITE2026-WebsocketChat",
+  "nodes": [
+    {
+      "parameters": {
+        "collection": "clients",
+        "options": {},
+        "query": "={\n  \"$and\": [\n    { \"db\": \"{{ $json.db }}\" },\n    { \"clientKey\": \"{{ $json.clientKey }}\" }\n  ]\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -880,
+        224
+      ],
+      "id": "ac385d7f-e85c-45ca-a45c-962d46cf80b4",
+      "name": "ping: Поиск клиента",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "O5iqBeV9wPVD85Do",
+          "name": "MongoDB chat"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const src = $('WebSocket: Сообщение от клиента').item.json;\nreturn { serverId: src.serverId, db: src.db, clientId: \"\", clientKey: \"\", response: [ { type: \"refresh\" } ] }"
+      },
+      "id": "7a00a87c-1276-4fdd-b1b7-277edbb11c5b",
+      "name": "ping: Подготовка broadcast",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6391dfb3-57e8-43ab-bd70-1e22829a1918",
+              "leftValue": "={{ $json }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -656,
+        224
+      ],
+      "id": "c9330ee6-9a7d-4c6e-b5a0-3845440f4a39",
+      "name": "ping: Клиент найден"
+    },
+    {
+      "parameters": {
+        "clientMethod": "broadcast"
+      },
+      "type": "n8n-nodes-websocket-standalone.webSocketResponse",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        336
+      ],
+      "id": "42584638-537c-4d15-a6b4-0eaf88676957",
+      "name": "ping: Broadcast refresh"
+    },
+    {
+      "parameters": {
+        "jsCode": "const src = $('WebSocket: Сообщение от клиента').item.json;\nreturn { serverId: src.serverId, db: src.db, clientId: src.clientId, clientKey: src.clientKey, clientName: src.clientName, timestamp: src.timestamp }"
+      },
+      "id": "610ad0e5-b748-46db-9282-18b89519965d",
+      "name": "ping: Подготовка записи в БД",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "findOneAndUpdate",
+        "collection": "clients",
+        "updateKey": "clientKey",
+        "fields": "serverId, db, clientId, clientKey, clientName, timestamp",
+        "upsert": true,
+        "options": {
+          "dateFields": "timestamp"
+        }
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        192,
+        208
+      ],
+      "id": "1b6853a8-5ea2-4bf8-a561-a4145f9ec39f",
+      "name": "ping: Запись клиента в БД",
+      "credentials": {
+        "mongoDb": {
+          "id": "O5iqBeV9wPVD85Do",
+          "name": "MongoDB chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return { serverId: $input.first().json.serverId, db: $input.first().json.db, clientId:  $input.first().json.clientId, clientKey: $input.first().json.clientKey, response: [ { type: \"pong\" } ] }"
+      },
+      "id": "49aacc20-2f94-4535-b9e7-51526359af7a",
+      "name": "ping: Подготовка ответа",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "connectionMethod": "custom",
+        "customServerId": "={{ $json.serverId }}",
+        "clientMethod": "custom",
+        "customClientId": "={{ $json.clientId }}"
+      },
+      "id": "93b896ee-d6c8-4eb1-bc69-21db922beafb",
+      "name": "WebSocket: Ответ клиенту",
+      "type": "n8n-nodes-websocket-standalone.webSocketResponse",
+      "typeVersion": 1,
+      "position": [
+        640,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "testExecutionBehavior": "keep_listening"
+      },
+      "id": "ee478695-37c6-4625-a471-03bd2ce181a6",
+      "name": "WebSocket: Сообщение от клиента",
+      "type": "n8n-nodes-websocket-standalone.webSocketTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1312,
+        576
+      ]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.type }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "ping"
+            },
+            {
+              "value2": "list",
+              "output": 1
+            },
+            {
+              "value2": "message",
+              "output": 2
+            },
+            {
+              "value2": "history",
+              "output": 3
+            }
+          ]
+        }
+      },
+      "id": "e22a7fd3-9f8d-491a-88a4-462ec9e1d738",
+      "name": "Определение типа сообщения",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        -1120,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "collection": "clients",
+        "options": {},
+        "query": "={ \"db\": \"{{ $json.db }}\" }"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -720,
+        480
+      ],
+      "id": "eec2f071-da65-43df-a692-cfadc5a65e67",
+      "name": "list: Получение списка клиентов",
+      "credentials": {
+        "mongoDb": {
+          "id": "O5iqBeV9wPVD85Do",
+          "name": "MongoDB chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const src = $('WebSocket: Сообщение от клиента').item.json;\nconst clients = $input.all().map(i => i.json);\nreturn { serverId: src.serverId, db: src.db, clientId:  src.clientId, clientKey: src.clientKey, response: [ { type: \"client_list\", count: clients.length, clients: clients } ] }"
+      },
+      "id": "0dfcd0f7-b57f-453a-ac28-f18c3b0a1b79",
+      "name": "list: Подготовка ответа",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "collection": "messages",
+        "fields": "serverId, db, object, clientId, fromName, fromId, toName, toId, message_id, text, replyId, fileName, fileData, timestamp",
+        "options": {
+          "dateFields": "timestamp"
+        }
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -720,
+        656
+      ],
+      "id": "64d1595e-0474-4ff0-8387-1e21246db502",
+      "name": "message: Запись сообщения в БД",
+      "credentials": {
+        "mongoDb": {
+          "id": "O5iqBeV9wPVD85Do",
+          "name": "MongoDB chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "collection": "clients",
+        "options": {},
+        "query": "={\n  \"$and\": [\n    { \"db\": \"{{ $json.db }}\" },\n    { \"clientKey\": \"{{ $json.toId }}\" }\n  ]\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -448,
+        656
+      ],
+      "id": "496c3597-aa75-4c87-8be7-f06b77f6de39",
+      "name": "message: Поиск получателя",
+      "credentials": {
+        "mongoDb": {
+          "id": "O5iqBeV9wPVD85Do",
+          "name": "MongoDB chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6391dfb3-57e8-43ab-bd70-1e22829a1918",
+              "leftValue": "={{ $json }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -224,
+        656
+      ],
+      "id": "3b2f2de1-5882-44a3-bb84-e6634f2e9563",
+      "name": "message: Получатель найден"
+    },
+    {
+      "parameters": {
+        "jsCode": "const src = $('WebSocket: Сообщение от клиента').item.json;\nconst recipient = $input.first().json;\nreturn [{ json: {\n  serverId: recipient.serverId,\n  db: recipient.db,\n  clientKey: recipient.clientKey,\n  clientId: recipient.clientId,\n  response: [{\n    type: 'message',\n    object: src.object,\n    message_id: src.message_id,\n    fromName: src.fromName,\n    fromId: src.fromId,\n    toName: src.toName,\n    toId: src.toId,\n    text: src.text,\n    fileName: src.fileName,\n    fileData: src.fileData,\n    replyId: src.replyId,\n    timestamp: src.timestamp\n  }]\n}}];"
+      },
+      "id": "b86f3efb-fc57-420c-bf62-09604b203e04",
+      "name": "message: Подготовка ответа",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "6391dfb3-57e8-43ab-bd70-1e22829a1918",
+              "leftValue": "={{ $json.message_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -720,
+        848
+      ],
+      "id": "b1f5e43f-77e2-4cfe-b01d-dfaec2da03da",
+      "name": "history: Запрос сообщений или файла"
+    },
+    {
+      "parameters": {
+        "collection": "messages",
+        "options": {},
+        "query": "={\n  \"message_id\": \"{{ $json.message_id }}\"\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -448,
+        832
+      ],
+      "id": "655f2cc4-e524-4b0b-8605-49a29e0b03d5",
+      "name": "history: Поиск файла",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "O5iqBeV9wPVD85Do",
+          "name": "MongoDB chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const src = $('WebSocket: Сообщение от клиента').item.json;\nconst messages = $input.all().map(i => i.json);\nreturn { serverId: src.serverId, db: src.db, clientId:  src.clientId, clientKey: src.clientKey, response: [ { type: \"file\", trigger: src.trigger, count: messages.length, data: messages } ] }"
+      },
+      "id": "083db399-ec95-4ac8-a8af-13f10bb65f04",
+      "name": "history: Подготовка ответа",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        832
+      ]
+    },
+    {
+      "parameters": {
+        "collection": "messages",
+        "options": {
+          "limit": "={{ $json.limit || 5 }}",
+          "sort": "{ \"timestamp\": 1 }",
+          "projection": "{\n  \"_id\": 0,\n  \"server_id\": 1,\n  \"db\": 1,\n  \"object\": 1,\n  \"clientId\": 1,\n  \"fromName\": 1,\n  \"fromId\": 1,\n  \"toName\": 1,\n  \"toId\": 1,\n  \"replyId\": 1,\n  \"message_id\": 1,\n  \"text\": 1,\n  \"fileName\": 1,\n  \"timestamp\": 1\n}"
+        },
+        "query": "={\n  \"db\": \"{{ $json.db }}\",\n  \"object\": \"{{ $json.object }}\",\n  \"$or\": [\n    { \"fromId\": \"{{ $json.clientKey }}\" },\n    { \"toId\": \"{{ $json.clientKey }}\" }\n  ],\n\"$expr\": {\n  \"$gt\": [\n    \"$timestamp\",\n    {\n      \"$dateFromString\": {\n        \"dateString\": \"{{ $json.after || '1970-01-01T00:00:00.000Z' }}\"\n      }\n    }\n  ]\n}\n}"
+      },
+      "type": "n8n-nodes-base.mongoDb",
+      "typeVersion": 1.2,
+      "position": [
+        -448,
+        992
+      ],
+      "id": "e9ad5f97-f462-4b8a-98d0-c0670b494728",
+      "name": "history: Получение списка сообщений",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mongoDb": {
+          "id": "O5iqBeV9wPVD85Do",
+          "name": "MongoDB chat"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const src = $('WebSocket: Сообщение от клиента').item.json;\nconst messages = $input.all().map(i => i.json);\nreturn { serverId: src.serverId, db: src.db, clientId:  src.clientId, clientKey: src.clientKey, response: [ { type: \"history\", count: messages.length, messages: messages } ] }"
+      },
+      "id": "244c0928-ffc1-4931-8db9-be2f7af153e1",
+      "name": "history: Подготовка ответа1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        992
+      ]
+    }
+  ],
+  "pinData": {
+    "WebSocket: Сообщение от клиента": [
+      {
+        "json": {
+          "type": "history",
+          "db": "f2c5943fe6aa225a30c58189a360075bc582e9aad999dfc8fa5ceae4b1d0a2bf",
+          "object": "00000000-0000-0000-0000-000000000000",
+          "fromName": "Дубовый Максим",
+          "fromId": "0a62a037-fd67-4269-95c8-8b858065e534",
+          "toName": "Березовый Александр",
+          "toId": "15a18f54-ff1e-45e8-8bee-20fedd7fa2ab",
+          "clientKey": "15a18f54-ff1e-45e8-8bee-20fedd7fa2ab",
+          "text": "Привет!",
+          "replyId": "",
+          "message_id": "8c463567-0bd5-41b2-8ed9-6336b2122c79",
+          "trigger": "GET_FILE",
+          "clientId": "s9pihi",
+          "serverId": "ws-5680",
+          "after": "2026-06-01T13:27:14.423Z",
+          "path": "/ws",
+          "port": 5680,
+          "nodeId": "c6e02885-509e-403a-8fc3-ff79bfe268fc",
+          "workflowId": "789pz3hRYKzuHoLb",
+          "serverSharing": "shared",
+          "messageCount": 55,
+          "contextInfo": {
+            "serverId": "ws-5680",
+            "port": 5680,
+            "path": "/ws",
+            "nodeId": "c6e02885-509e-403a-8fc3-ff79bfe268fc",
+            "workflowId": "789pz3hRYKzuHoLb",
+            "serverSharing": "shared",
+            "active": true,
+            "createdAt": "2026-05-27T13:00:51.423Z"
+          },
+          "timestamp": "2026-05-27T13:02:40.918Z"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "ping: Поиск клиента": {
+      "main": [
+        [
+          {
+            "node": "ping: Клиент найден",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ping: Подготовка broadcast": {
+      "main": [
+        [
+          {
+            "node": "ping: Broadcast refresh",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ping: Клиент найден": {
+      "main": [
+        [
+          {
+            "node": "ping: Подготовка записи в БД",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ping: Подготовка broadcast",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ping: Broadcast refresh": {
+      "main": [
+        [
+          {
+            "node": "ping: Подготовка записи в БД",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ping: Подготовка записи в БД": {
+      "main": [
+        [
+          {
+            "node": "ping: Запись клиента в БД",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ping: Запись клиента в БД": {
+      "main": [
+        [
+          {
+            "node": "ping: Подготовка ответа",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ping: Подготовка ответа": {
+      "main": [
+        [
+          {
+            "node": "WebSocket: Ответ клиенту",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WebSocket: Сообщение от клиента": {
+      "main": [
+        [
+          {
+            "node": "Определение типа сообщения",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Определение типа сообщения": {
+      "main": [
+        [
+          {
+            "node": "ping: Поиск клиента",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "list: Получение списка клиентов",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "message: Запись сообщения в БД",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "history: Запрос сообщений или файла",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "list: Получение списка клиентов": {
+      "main": [
+        [
+          {
+            "node": "list: Подготовка ответа",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "list: Подготовка ответа": {
+      "main": [
+        [
+          {
+            "node": "WebSocket: Ответ клиенту",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "message: Запись сообщения в БД": {
+      "main": [
+        [
+          {
+            "node": "message: Поиск получателя",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "message: Поиск получателя": {
+      "main": [
+        [
+          {
+            "node": "message: Получатель найден",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "message: Получатель найден": {
+      "main": [
+        [
+          {
+            "node": "message: Подготовка ответа",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "message: Подготовка ответа": {
+      "main": [
+        [
+          {
+            "node": "WebSocket: Ответ клиенту",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "history: Запрос сообщений или файла": {
+      "main": [
+        [
+          {
+            "node": "history: Поиск файла",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "history: Получение списка сообщений",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "history: Поиск файла": {
+      "main": [
+        [
+          {
+            "node": "history: Подготовка ответа",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "history: Подготовка ответа": {
+      "main": [
+        [
+          {
+            "node": "WebSocket: Ответ клиенту",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "history: Получение списка сообщений": {
+      "main": [
+        [
+          {
+            "node": "history: Подготовка ответа1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "history: Подготовка ответа1": {
+      "main": [
+        [
+          {
+            "node": "WebSocket: Ответ клиенту",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "90c0cd26-19b5-40de-9d7c-103d5a3f9045",
+  "meta": {
+    "instanceId": "b63c7721b80e36ec7286127ad26f08ed78f3d14148cd2e30db00a82c604f3f3c"
+  },
+  "nodeGroups": [],
+  "id": "WzoE4F3bdaf7hkcI",
+  "tags": [
+    {
+      "name": "ITE2026",
+      "id": "wOh1WyWrQOskF3ET",
+      "updatedAt": "2026-09-11T08:18:42.056Z",
+      "createdAt": "2026-09-11T08:18:42.056Z"
+    }
+  ]
+}

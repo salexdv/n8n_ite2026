@@ -1,0 +1,366 @@
+{
+  "name": "ITE2026-AIGeneration",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 1С → AI-карточка товара\n**Вход:** вид номенклатуры, наименование, base64-картинка, количество изображений.\n\n`AI Agent` анализирует исходное фото, пишет описание и готовит ровно N промтов. Генерация изображений остаётся детерминированной частью workflow.",
+        "height": 296,
+        "width": 430
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        480
+      ],
+      "id": "acac4703-5122-4ddb-8991-df4a2f84c8b1",
+      "name": "About"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "1c-ai-product-card-agent",
+        "authentication": "basicAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        896
+      ],
+      "id": "df57900b-7099-40da-96f5-a6b8a666ab5c",
+      "name": "Webhook — 1C",
+      "webhookId": "fffa73ba-f04a-49da-986e-07ba20502f74",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "SPxaGWUhmCaCfIao",
+          "name": "ai generation auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const src = $json.body ?? $json;\n\nconst itemType =\n  src.item_type ??\n  src.nomenclature_type ??\n  src.type ??\n  src['ВидНоменклатуры'] ??\n  src['Вид номенклатуры'];\n\nconst name =\n  src.name ??\n  src.product_name ??\n  src['Наименование'] ??\n  src['Наименование товара'];\n\nlet imageBase64 =\n  src.image_base64 ??\n  src.image ??\n  src['Картинка'] ??\n  src['Изображение'];\n\nlet imageMime =\n  src.image_mime ??\n  src.mime_type ??\n  src['ТипКартинки'] ??\n  'image/jpeg';\n\nconst requestedCount =\n  src.image_count ??\n  src.count ??\n  src['КоличествоКартинок'] ??\n  src['Количество картинок'] ??\n  3;\n\nif (!itemType) throw new Error('Не передан item_type / ВидНоменклатуры');\nif (!name) throw new Error('Не передан name / Наименование');\nif (!imageBase64) throw new Error('Не передан image_base64 / Картинка');\n\nconst imageCount = Math.max(1, Math.min(10, Number(requestedCount) || 3));\n\nif (String(imageBase64).startsWith('data:')) {\n  const match = String(imageBase64).match(/^data:([^;]+);base64,(.+)$/s);\n  if (!match) throw new Error('Некорректный data URL изображения');\n  imageMime = match[1];\n  imageBase64 = match[2];\n}\n\nimageBase64 = String(imageBase64).replace(/\\s+/g, '');\nconst imageDataUrl = `data:${imageMime};base64,${imageBase64}`;\n\n// Создаём binary-свойство sourceImage.\n// AI Agent с passthroughBinaryImages увидит исходное изображение.\nreturn [{\n  json: {\n    item_type: String(itemType),\n    name: String(name),\n    image_count: imageCount,\n    image_mime: String(imageMime),\n    image_base64: imageBase64,\n    image_data_url: imageDataUrl\n  },\n  binary: {\n    sourceImage: {\n      data: imageBase64,\n      mimeType: String(imageMime),\n      fileName: 'product-reference'\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -624,
+        896
+      ],
+      "id": "87455c22-091d-44cf-a9ad-b2c1c3bba9f4",
+      "name": "Normalize 1C JSON"
+    },
+    {
+      "parameters": {
+        "jsCode": "const src = $json;\n\n// Правила можно вынести в MongoDB/1С/Google Sheets.\n// Здесь они оставлены внутри workflow, чтобы пример легко импортировался.\nconst catalog = {\n  'обув': {\n    descriptionRules: `\nТы создаёшь карточку обуви для e-commerce.\nАкцент: внешний вид, силуэт, видимые материалы, подошва, посадка и сценарий использования.\nНельзя придумывать состав, технологии, водостойкость, размеры и другие характеристики,\nесли их нет во входных данных или их нельзя уверенно определить по фотографии.`,\n    imageRules: `\nЭто обувь. Во всех сгенерированных изображениях строго сохраняй исходную модель:\nсилуэт, цвет, материал, подошву, шнуровку, логотипы и конструктивные детали.\nМожно менять только фон, окружение, свет, композицию и ракурс.\nНе добавляй текст, цены, водяные знаки и новые логотипы.`\n  },\n\n  'одеж': {\n    descriptionRules: `\nТы создаёшь карточку одежды для e-commerce.\nАкцент: фасон, визуальная фактура, цвет, стиль, посадка и варианты сочетания.\nНе выдумывай состав ткани, размеры и функциональные свойства.`,\n    imageRules: `\nЭто одежда. Строго сохраняй фасон, цвет, принт, фурнитуру и пропорции изделия.\nМожно менять фон, модель подачи, окружение, свет и ракурс.\nНе изменяй дизайн вещи и не добавляй надписи.`\n  },\n\n  'электрон': {\n    descriptionRules: `\nТы создаёшь карточку электроники.\nОпиши назначение, внешний вид и только видимые особенности.\nНе придумывай мощность, ёмкость, интерфейсы, совместимость и другие технические параметры.`,\n    imageRules: `\nЭто электроника. Строго сохраняй корпус, цвет, кнопки, разъёмы, экран,\nмаркировку, логотипы и пропорции исходного устройства.\nСделай премиальную технологичную предметную съёмку без дополнительного текста.`\n  },\n\n  'космет': {\n    descriptionRules: `\nТы создаёшь карточку косметики.\nОпиши упаковку, формат, визуальное позиционирование и назначение,\nесли оно очевидно из названия и фото. Не придумывай состав, лечебные эффекты\nи клинические обещания.`,\n    imageRules: `\nЭто косметический продукт. Строго сохраняй форму упаковки, цвет,\nэтикетку и бренд. Используй аккуратный beauty-свет и коммерческую композицию.\nНе изменяй надписи на упаковке и не создавай новые.`\n  },\n\n  'default': {\n    descriptionRules: `\nТы создаёшь карточку товара для маркетплейса.\nПодготовь точное продающее описание по названию и фотографии.\nНе выдумывай свойства и характеристики, которых нет во входных данных\nили которые нельзя достоверно определить по изображению.`,\n    imageRules: `\nСоздавай профессиональные e-commerce изображения именно исходного товара.\nМаксимально сохраняй форму, цвет, материалы, логотипы, маркировку и детали.\nРазрешено менять фон, окружение, свет, композицию и ракурс.\nЗапрещено добавлять текст, цены, водяные знаки и новые логотипы.`\n  }\n};\n\nconst key = Object.keys(catalog)\n  .filter(k => k !== 'default')\n  .find(k => src.item_type.toLowerCase().includes(k));\n\nconst rules = catalog[key ?? 'default'];\n\nreturn [{\n  json: {\n    ...src,\n    description_rules: rules.descriptionRules.trim(),\n    image_rules: rules.imageRules.trim(),\n    agent_model: 'openai/gpt-5.4',\n    image_model: 'openai/gpt-image-1',\n    aspect_ratio: '1:1',\n    quality: 'high'\n  },\n  binary: $binary\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        896
+      ],
+      "id": "e6a41128-084e-47d3-bff5-13cf379d12d1",
+      "name": "Prompt Router"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Проанализируй товар и исходную фотографию.\n\nВид номенклатуры: {{ $json.item_type }}\nНаименование: {{ $json.name }}\nТребуемое количество изображений: {{ $json.image_count }}\n\nПравила написания описания:\n{{ $json.description_rules }}\n\nПравила для будущих изображений:\n{{ $json.image_rules }}\n\nВерни JSON строго по заданной схеме.\nПоле image_prompts должно содержать РОВНО {{ $json.image_count }} элементов.\nКаждый image_prompt должен быть самостоятельным подробным заданием для image-to-image генерации.\nПромты должны давать разные коммерческие сцены/ракурсы, но сохранять один и тот же исходный товар.",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Ты — AI-арт-директор и e-commerce копирайтер.\nТы получаешь название товара, его вид номенклатуры и исходную фотографию.\n\nТвои задачи:\n1. Внимательно проанализировать именно исходное изображение товара.\n2. Написать продающее, но правдивое описание на русском языке.\n3. Дать 5 конкретных преимуществ без выдуманных характеристик.\n4. Создать заданное количество разных image-prompts для дальнейшего image-to-image генератора.\n\nКритические правила:\n- Не выдумывай технические характеристики, состав, размеры, сертификаты и свойства.\n- Не меняй идентичность товара в image-prompts.\n- В каждом image-prompt явно указывай сохранить форму, цвет, материалы, маркировку и логотипы исходного товара.\n- Менять можно окружение, фон, освещение, композицию и ракурс.\n- image_prompts должны быть разнообразными: каталожный кадр, hero-shot, lifestyle, крупный план и т.п.\n- Возвращай результат только в JSON согласно Structured Output Parser.",
+          "passthroughBinaryImages": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -272,
+        896
+      ],
+      "id": "22fe19a4-7b5a-4d82-9f9e-2df19a041b2b",
+      "name": "AI Agent — Product Art Director"
+    },
+    {
+      "parameters": {
+        "model": "deepseek/deepseek-v4-flash-0731",
+        "options": {
+          "temperature": 0.4,
+          "timeout": 180000,
+          "maxRetries": 2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        -336,
+        1104
+      ],
+      "id": "6615bc8f-4c19-49d6-8829-0998355f420a",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "XiQ3AOOVf9Ea9Hcp",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"description\": \"Продающее описание товара на русском языке.\",\n  \"short_title\": \"Короткий маркетинговый заголовок\",\n  \"selling_points\": [\n    \"Преимущество 1\",\n    \"Преимущество 2\",\n    \"Преимущество 3\",\n    \"Преимущество 4\",\n    \"Преимущество 5\"\n  ],\n  \"image_prompts\": [\n    \"Промт для изображения 1\",\n    \"Промт для изображения 2\",\n    \"Промт для изображения 3\"\n  ]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -80,
+        1104
+      ],
+      "id": "c3b27027-4250-4b6a-b218-67834ac7b544",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "jsCode": "const source = $('Prompt Router').first().json;\nconst agent = $json.output ?? $json;\n\nlet result = agent;\n\nif (typeof result === 'string') {\n  let text = result.trim();\n  text = text.replace(/^```(?:json)?\\s*/i, '').replace(/\\s*```$/, '');\n  result = JSON.parse(text);\n}\n\nconst prompts = Array.isArray(result.image_prompts)\n  ? result.image_prompts.filter(Boolean).map(String)\n  : [];\n\nconst fallbackScenes = [\n  'чистый каталожный кадр на светлом нейтральном фоне, мягкий студийный свет',\n  'премиальный hero-shot, выразительный студийный свет и аккуратная глубина сцены',\n  'естественная lifestyle-сцена в контексте использования товара',\n  'альтернативный коммерческий ракурс, подчёркивающий форму и материалы',\n  'крупный план ключевых визуальных деталей товара',\n  'минималистичная рекламная композиция для маркетплейса'\n];\n\nwhile (prompts.length < source.image_count) {\n  const scene = fallbackScenes[prompts.length % fallbackScenes.length];\n  prompts.push(\n    `${source.image_rules}\\n\\nСоздай ${scene}. ` +\n    `Используй исходное изображение как строгий визуальный референс.`\n  );\n}\n\nconst exactPrompts = prompts.slice(0, source.image_count);\n\nreturn [{\n  json: {\n    item_type: source.item_type,\n    name: source.name,\n    image_count: source.image_count,\n    image_model: source.image_model,\n    aspect_ratio: source.aspect_ratio,\n    quality: source.quality,\n    image_data_url: source.image_data_url,\n\n    short_title: String(result.short_title ?? source.name),\n    description: String(result.description ?? ''),\n    selling_points: Array.isArray(result.selling_points)\n      ? result.selling_points.map(String).slice(0, 5)\n      : [],\n    image_prompts: exactPrompts\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        48,
+        896
+      ],
+      "id": "5adfa89c-73e2-4806-a295-913ee8f79f83",
+      "name": "Normalize Agent Output"
+    },
+    {
+      "parameters": {
+        "jsCode": "const src = $json;\n\nreturn src.image_prompts.map((prompt, index) => ({\n  json: {\n    index: index + 1,\n    name: src.name,\n    item_type: src.item_type,\n    short_title: src.short_title,\n    description: src.description,\n    selling_points: src.selling_points,\n    model: src.image_model,\n    aspect_ratio: src.aspect_ratio,\n    quality: src.quality,\n    image_data_url: src.image_data_url,\n    prompt\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        896
+      ],
+      "id": "3e23ab0e-c8a1-477c-9b65-1f72ba59ab30",
+      "name": "Create N Image Jobs"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/images",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ JSON.stringify({ model: $json.model, prompt: $json.prompt, aspect_ratio: $json.aspect_ratio, quality: $json.quality, input_references: [ { type: 'image_url', image_url: { url: $json.image_data_url } } ] }) }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        432,
+        896
+      ],
+      "id": "7fdaf250-622b-48a6-87c6-ac1e369e1d21",
+      "name": "OpenRouter — Generate Image",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "XzSSMgWQrnRSYE3L",
+          "name": "OpenRouter Image API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const source = $('Normalize Agent Output').first().json;\nconst generated = $input.all();\n\nconst images = generated.map((item, idx) => {\n  const data = item.json?.data ?? [];\n  const first = data[0];\n\n  if (!first?.b64_json) {\n    return {\n      index: idx + 1,\n      success: false,\n      error: 'В ответе OpenRouter нет data[0].b64_json',\n      raw: item.json\n    };\n  }\n\n  return {\n    index: idx + 1,\n    success: true,\n    media_type: first.media_type ?? 'image/png',\n    base64: first.b64_json\n  };\n});\n\nreturn [{\n  json: {\n    success: images.every(x => x.success),\n    item_type: source.item_type,\n    name: source.name,\n    short_title: source.short_title,\n    description: source.description,\n    selling_points: source.selling_points,\n    requested_images_count: source.image_count,\n    generated_images_count: images.filter(x => x.success).length,\n    images\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        896
+      ],
+      "id": "6061f81c-5dda-4208-8ea0-549a9504ffb7",
+      "name": "Build Response for 1C"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        816,
+        896
+      ],
+      "id": "0d6a54bf-b19c-4bf4-b7b8-fadcd9bc6ab0",
+      "name": "Respond to 1C"
+    },
+    {
+      "parameters": {
+        "content": "### Настройка после импорта\n1. В **OpenRouter Chat Model** выберите/создайте credential `OpenRouter API`.\n2. В **OpenRouter — Generate Image** создайте credential `Authentication` → `Generic Credential Type`, `Generic Auth Type`→ `Header Auth`. В самом credential: `Name: Authorization`, `Value Bearer ВАШ_КЛЮЧ`\n3. При необходимости смените `agent_model` и `image_model` в **Prompt Router**.\n4. Добавляйте категории и отдельные промты тоже в **Prompt Router**.",
+        "height": 300,
+        "width": 460
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        16,
+        480
+      ],
+      "id": "e2cea155-a3db-4f6a-9aaa-50129311f135",
+      "name": "Setup"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook — 1C": {
+      "main": [
+        [
+          {
+            "node": "Normalize 1C JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize 1C JSON": {
+      "main": [
+        [
+          {
+            "node": "Prompt Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prompt Router": {
+      "main": [
+        [
+          {
+            "node": "AI Agent — Product Art Director",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent — Product Art Director",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent — Product Art Director",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent — Product Art Director": {
+      "main": [
+        [
+          {
+            "node": "Normalize Agent Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Agent Output": {
+      "main": [
+        [
+          {
+            "node": "Create N Image Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create N Image Jobs": {
+      "main": [
+        [
+          {
+            "node": "OpenRouter — Generate Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter — Generate Image": {
+      "main": [
+        [
+          {
+            "node": "Build Response for 1C",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Response for 1C": {
+      "main": [
+        [
+          {
+            "node": "Respond to 1C",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "38f997fc-9523-4bb1-be99-4b3b0a383212",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b63c7721b80e36ec7286127ad26f08ed78f3d14148cd2e30db00a82c604f3f3c"
+  },
+  "nodeGroups": [],
+  "id": "fP8bVvdSZCmy4toq",
+  "tags": [
+    {
+      "name": "ITE2026",
+      "id": "wOh1WyWrQOskF3ET",
+      "updatedAt": "2026-09-11T08:18:42.056Z",
+      "createdAt": "2026-09-11T08:18:42.056Z"
+    }
+  ]
+}

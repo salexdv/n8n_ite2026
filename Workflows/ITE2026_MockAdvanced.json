@@ -1,0 +1,439 @@
+{
+  "name": "ITE2026-MockAdvanced",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mock-api/orders",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "875de063-a853-4b03-b76d-bf705f5763d4",
+      "name": "POST /orders",
+      "webhookId": "9de97180-4c43-40f8-b859-643d7b47b3aa"
+    },
+    {
+      "parameters": {
+        "jsCode": "const req = $json;\nconst body = req.body ?? {};\n\nfunction bad(message) {\n  return [{ json: {\n    statusCode: 400,\n    body: { error: 'validation_error', message }\n  }}];\n}\n\nif (typeof body.customer !== 'string' || !body.customer.trim()) {\n  return bad('customer is required and must be a non-empty string');\n}\n\nif (!Array.isArray(body.items) || body.items.length === 0) {\n  return bad('items must contain at least one item');\n}\n\nfor (let i = 0; i < body.items.length; i++) {\n  const item = body.items[i];\n\n  if (!item || typeof item.sku !== 'string' || !item.sku.trim()) {\n    return bad(`items[${i}].sku is required`);\n  }\n\n  if (!Number.isInteger(item.quantity) || item.quantity <= 0) {\n    return bad(`items[${i}].quantity must be a positive integer`);\n  }\n\n  if (item.price !== undefined && (typeof item.price !== 'number' || item.price < 0)) {\n    return bad(`items[${i}].price must be a non-negative number`);\n  }\n}\n\nconst store = $getWorkflowStaticData('global');\nif (!store.orders) store.orders = {};\nif (!store.sequence) store.sequence = 1000;\n\nstore.sequence += 1;\nconst id = `ORD-${store.sequence}`;\n\nconst items = body.items.map(item => ({\n  sku: item.sku.trim(),\n  quantity: item.quantity,\n  price: item.price ?? 100\n}));\n\nconst order = {\n  id,\n  customer: body.customer.trim(),\n  status: 'CREATED',\n  currency: body.currency ?? 'RUB',\n  items,\n  total: items.reduce((sum, item) => sum + item.price * item.quantity, 0),\n  payment: null,\n  createdAt: new Date().toISOString(),\n  updatedAt: new Date().toISOString()\n};\n\nstore.orders[id] = order;\n\nreturn [{ json: { statusCode: 201, body: order } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "714e5d67-6d70-43e8-8b6b-0e396e68f70e",
+      "name": "Create order"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.body }}",
+        "options": {
+          "responseCode": "={{ $json.statusCode }}"
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        384,
+        0
+      ],
+      "id": "b8051b0e-2757-4d8f-81fd-1144fc20b9c7",
+      "name": "Create response"
+    },
+    {
+      "parameters": {
+        "path": "mock-api/orders-list",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        240
+      ],
+      "id": "ffbc92e8-66ef-4a2f-a49a-95e2864449d3",
+      "name": "GET /orders",
+      "webhookId": "33cc8fdc-f38a-47f6-8b50-8fe406e9cc3c"
+    },
+    {
+      "parameters": {
+        "jsCode": "const req = $json;\nconst q = req.query ?? {};\n\nconst store = $getWorkflowStaticData('global');\nif (!store.orders) store.orders = {};\n\nlet orders = Object.values(store.orders);\n\nif (q.status) {\n  orders = orders.filter(o => o.status === String(q.status).toUpperCase());\n}\n\nif (q.customer) {\n  const s = String(q.customer).toLowerCase();\n  orders = orders.filter(o => String(o.customer).toLowerCase().includes(s));\n}\n\norders.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));\n\nconst offset = Math.max(0, parseInt(q.offset ?? '0', 10) || 0);\nconst limit = Math.min(100, Math.max(1, parseInt(q.limit ?? '20', 10) || 20));\n\nreturn [{\n  json: {\n    statusCode: 200,\n    body: {\n      data: orders.slice(offset, offset + limit),\n      meta: {\n        total: orders.length,\n        offset,\n        limit\n      }\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        240
+      ],
+      "id": "61ddba5e-90d9-4723-8888-29e8cc17c994",
+      "name": "List orders"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.body }}",
+        "options": {
+          "responseCode": "={{ $json.statusCode }}"
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        384,
+        240
+      ],
+      "id": "e78ad31f-5e14-4c45-95ef-a262e811094f",
+      "name": "List response"
+    },
+    {
+      "parameters": {
+        "path": "mock-api/order",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        480
+      ],
+      "id": "52f5e049-12b6-4bcb-a33b-3ddafe9706af",
+      "name": "GET /order",
+      "webhookId": "d0a5c267-1bd6-4afb-a0ff-7cccb146e82c"
+    },
+    {
+      "parameters": {
+        "jsCode": "const id = $json.query?.id;\n\nif (!id) {\n  return [{ json: {\n    statusCode: 400,\n    body: { error: 'validation_error', message: 'Query parameter id is required' }\n  }}];\n}\n\nconst store = $getWorkflowStaticData('global');\nif (!store.orders) store.orders = {};\n\nconst order = store.orders[id];\n\nif (!order) {\n  return [{ json: {\n    statusCode: 404,\n    body: { error: 'not_found', message: `Order ${id} was not found` }\n  }}];\n}\n\nreturn [{ json: { statusCode: 200, body: order } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        480
+      ],
+      "id": "f19a7e1d-34d8-49ac-95d8-9e84273b21d2",
+      "name": "Get order"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.body }}",
+        "options": {
+          "responseCode": "={{ $json.statusCode }}"
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        384,
+        480
+      ],
+      "id": "596db6ca-f21c-4bd8-a822-ac67810facb5",
+      "name": "Get response"
+    },
+    {
+      "parameters": {
+        "httpMethod": "PATCH",
+        "path": "mock-api/order-status",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        720
+      ],
+      "id": "f97eb263-22c0-4fca-85b7-2e9f73c7eb31",
+      "name": "PATCH /order-status",
+      "webhookId": "f3088f64-9328-43b0-97c1-a6709b229186"
+    },
+    {
+      "parameters": {
+        "jsCode": "const id = $json.query?.id;\nconst status = String($json.body?.status ?? '').toUpperCase();\nconst allowed = ['CREATED', 'PROCESSING', 'PACKED', 'SHIPPED', 'DELIVERED', 'CANCELLED'];\n\nif (!id) {\n  return [{ json: {\n    statusCode: 400,\n    body: { error: 'validation_error', message: 'Query parameter id is required' }\n  }}];\n}\n\nif (!allowed.includes(status)) {\n  return [{ json: {\n    statusCode: 400,\n    body: { error: 'validation_error', message: 'Unsupported status', allowedStatuses: allowed }\n  }}];\n}\n\nconst store = $getWorkflowStaticData('global');\nif (!store.orders) store.orders = {};\n\nconst order = store.orders[id];\n\nif (!order) {\n  return [{ json: {\n    statusCode: 404,\n    body: { error: 'not_found', message: `Order ${id} was not found` }\n  }}];\n}\n\norder.status = status;\norder.updatedAt = new Date().toISOString();\n\nreturn [{ json: { statusCode: 200, body: order } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        720
+      ],
+      "id": "a4b9caa4-27f7-4f54-af8c-fa8f2116845a",
+      "name": "Update status"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.body }}",
+        "options": {
+          "responseCode": "={{ $json.statusCode }}"
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        384,
+        720
+      ],
+      "id": "dbac2832-6952-4ea4-ae7a-9f1cd041bd5a",
+      "name": "Status response"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mock-api/pay",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "8123bc1c-acd4-4ceb-ae66-9f4aa538b340",
+      "name": "POST /pay",
+      "webhookId": "a9267b29-858d-42ce-a1b2-0fbbbefae074"
+    },
+    {
+      "parameters": {
+        "jsCode": "const req = $json;\nconst id = req.query?.id;\nconst scenario = String(\n  req.query?.scenario ??\n  req.headers?.['x-mock-scenario'] ??\n  'success'\n).toLowerCase();\n\nconst allowedScenarios = ['success', 'declined', 'server-error', 'timeout'];\n\nif (!id) {\n  return [{ json: {\n    statusCode: 400,\n    body: { error: 'validation_error', message: 'Query parameter id is required' }\n  }}];\n}\n\nif (!allowedScenarios.includes(scenario)) {\n  return [{ json: {\n    statusCode: 400,\n    body: {\n      error: 'validation_error',\n      message: `Unknown scenario: ${scenario}`,\n      allowedScenarios\n    }\n  }}];\n}\n\nconst store = $getWorkflowStaticData('global');\nif (!store.orders) store.orders = {};\nconst order = store.orders[id];\n\nif (!order) {\n  return [{ json: {\n    statusCode: 404,\n    body: { error: 'not_found', message: `Order ${id} was not found` }\n  }}];\n}\n\nif (scenario === 'timeout') {\n  await new Promise(resolve => setTimeout(resolve, 3000));\n  return [{ json: {\n    statusCode: 504,\n    body: {\n      error: 'gateway_timeout',\n      message: 'Mock payment provider did not answer within 3000 ms',\n      retryable: true\n    }\n  }}];\n}\n\nif (scenario === 'declined') {\n  return [{ json: {\n    statusCode: 402,\n    body: {\n      error: 'payment_declined',\n      code: 'CARD_DECLINED',\n      message: 'Payment was declined by issuer',\n      retryable: false\n    }\n  }}];\n}\n\nif (scenario === 'server-error') {\n  return [{ json: {\n    statusCode: 500,\n    body: {\n      error: 'internal_error',\n      message: 'Mock payment provider failed',\n      traceId: `trace-${Date.now()}-${Math.random().toString(16).slice(2)}`\n    }\n  }}];\n}\n\nconst payment = {\n  paymentId: `PAY-${Math.floor(100000 + Math.random() * 900000)}`,\n  status: 'PAID',\n  paidAt: new Date().toISOString(),\n  amount: order.total,\n  currency: order.currency\n};\n\norder.payment = payment;\norder.status = 'PAID';\norder.updatedAt = new Date().toISOString();\n\nreturn [{ json: {\n  statusCode: 200,\n  body: { orderId: id, ...payment }\n}}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        0
+      ],
+      "id": "04fc5a63-f95e-4384-8464-fda0abf86fd9",
+      "name": "Payment mock"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.body }}",
+        "options": {
+          "responseCode": "={{ $json.statusCode }}"
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        992,
+        0
+      ],
+      "id": "3904e310-5462-4847-bb01-6add5bc95d9d",
+      "name": "Payment response"
+    },
+    {
+      "parameters": {
+        "httpMethod": "DELETE",
+        "path": "mock-api/reset",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        624,
+        240
+      ],
+      "id": "34926c8b-327f-471b-baa8-22ac3eac9e29",
+      "name": "DELETE /orders",
+      "webhookId": "0b7a410b-ff2c-4426-b242-4d8cc693f69a"
+    },
+    {
+      "parameters": {
+        "jsCode": "const store = $getWorkflowStaticData('global');\nstore.orders = {};\nstore.sequence = 1000;\n\nreturn [{\n  json: {\n    statusCode: 200,\n    body: { ok: true, message: 'Mock storage has been reset' }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        240
+      ],
+      "id": "516d2d30-446e-4a7f-9799-ebd5ea0abe1f",
+      "name": "Reset state"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.body }}",
+        "options": {
+          "responseCode": "={{ $json.statusCode }}"
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        992,
+        240
+      ],
+      "id": "142d41e8-c09d-4d64-a8ea-801d2c4b8e18",
+      "name": "Reset response"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "POST /orders": {
+      "main": [
+        [
+          {
+            "node": "Create order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create order": {
+      "main": [
+        [
+          {
+            "node": "Create response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET /orders": {
+      "main": [
+        [
+          {
+            "node": "List orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List orders": {
+      "main": [
+        [
+          {
+            "node": "List response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GET /order": {
+      "main": [
+        [
+          {
+            "node": "Get order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get order": {
+      "main": [
+        [
+          {
+            "node": "Get response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PATCH /order-status": {
+      "main": [
+        [
+          {
+            "node": "Update status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update status": {
+      "main": [
+        [
+          {
+            "node": "Status response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /pay": {
+      "main": [
+        [
+          {
+            "node": "Payment mock",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payment mock": {
+      "main": [
+        [
+          {
+            "node": "Payment response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DELETE /orders": {
+      "main": [
+        [
+          {
+            "node": "Reset state",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reset state": {
+      "main": [
+        [
+          {
+            "node": "Reset response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "875311d1-0108-4c81-8afa-085f79463865",
+  "meta": {
+    "instanceId": "b63c7721b80e36ec7286127ad26f08ed78f3d14148cd2e30db00a82c604f3f3c"
+  },
+  "nodeGroups": [],
+  "id": "jHZk0LYXz6dEab9W",
+  "tags": [
+    {
+      "name": "ITE2026",
+      "id": "wOh1WyWrQOskF3ET",
+      "updatedAt": "2026-09-11T08:18:42.056Z",
+      "createdAt": "2026-09-11T08:18:42.056Z"
+    }
+  ]
+}

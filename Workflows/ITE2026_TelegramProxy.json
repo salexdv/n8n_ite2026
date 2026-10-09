@@ -1,0 +1,124 @@
+{
+  "name": "ITE2026-TelegramProxy",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "a30b1fbe-0dfb-4947-b268-591c640c7cef",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        48,
+        112
+      ],
+      "id": "07353c7f-63cc-4609-8e9a-3485cc023bb2",
+      "name": "Webhook",
+      "webhookId": "a30b1fbe-0dfb-4947-b268-591c640c7cef"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/bot{{ $json.constants.BOT_TOKEN }}/sendMessage?chat_id={{ $json.constants.CHAT_ID }}&text= {{ $json.query.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        448,
+        112
+      ],
+      "id": "7429a0a5-fcf3-4176-96ec-be539b25d9da",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-globals.globalConstants",
+      "typeVersion": 1,
+      "position": [
+        256,
+        112
+      ],
+      "id": "a23e19b7-4a4c-485b-beb8-e048b3f29a1b",
+      "name": "Bot settings",
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "credentials": {
+        "globalConstantsApi": {
+          "id": "3jfmfBYveNBVZqgJ",
+          "name": "Bot Settings"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "connection": "close",
+            "host": "n8n.shkuraev.ru",
+            "x-real-ip": "192.168.1.1",
+            "x-forwarded-for": "192.168.1.1",
+            "x-forwarded-proto": "https",
+            "accept": "application/json, text/plain, */*",
+            "user-agent": "bruno-runtime/4.0.0",
+            "authorization": "Basic ***************************",
+            "request-start-time": "1788594985762",
+            "accept-encoding": "gzip, compress, deflate, br"
+          },
+          "params": {},
+          "query": {
+            "text": "✅ ERP_PRODUCTION: обновление базы успешно завершено"
+          },
+          "body": {},
+          "webhookUrl": "https://n8n.shkuraev.ru/webhook-test/a30b1fbe-0dfb-4947-b268-591c640c7cef",
+          "executionMode": "test"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Bot settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bot settings": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "9477d3ad-ecce-4350-a89a-59007b291aed",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b63c7721b80e36ec7286127ad26f08ed78f3d14148cd2e30db00a82c604f3f3c"
+  },
+  "nodeGroups": [],
+  "id": "qAD2yGemnxscgWiq",
+  "tags": [
+    {
+      "name": "ITE2026",
+      "id": "wOh1WyWrQOskF3ET",
+      "updatedAt": "2026-09-11T08:18:42.056Z",
+      "createdAt": "2026-09-11T08:18:42.056Z"
+    }
+  ]
+}

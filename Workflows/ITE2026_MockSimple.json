@@ -1,0 +1,95 @@
+{
+  "name": "ITE2026-MockSimple",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "f6baf9d3-2cbc-41cf-a592-61d0b398bc57",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "9b973342-32bd-4aa1-8ba1-a6a1ff57baec",
+      "name": "Webhook",
+      "webhookId": "f6baf9d3-2cbc-41cf-a592-61d0b398bc57"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"aggregation\": {\n    \"aggregation_status\": \"AGGREGATED\",\n    \"batch_id\": \"TST-04639379540006-READY-LIVE-MWSVC0422\",\n    \"can_disaggregate\": true,\n    \"circulation_allowed\": true,\n    \"circulation_status\": \"READY\",\n    \"gtin\": \"04639379540006\",\n    \"internal_barcode\": \"BOX-E2E-MWSVC0422\",\n    \"items\": [\n      {\n        \"client_order_number\": \"1664-34\",\n        \"code\": \"0104639379540006215vOpCRo7A(!FkDtrVG>S\\u001d93dGVz\",\n        \"internal_series_number\": \"900042201\",\n        \"linked\": true,\n        \"status\": \"LINKED\"\n      },\n      {\n        \"client_order_number\": \"1664-34\",\n        \"code\": \"0104639379540006215kM>j+en:+fi4=sD_+ZK\\u001d93dGVz\",\n        \"internal_series_number\": \"900042202\",\n        \"linked\": true,\n        \"status\": \"LINKED\"\n      }\n    ],\n    \"latest_aggregation_at\": \"2026-04-22T10:10:35\",\n    \"latest_aggregation_document_id\": \"d06d35ab-ad9f-4819-9d2c-905a6a84d9ab\",\n    \"latest_aggregation_status\": \"SUCCEEDED\",\n    \"nomenclature_name\": \"Test product\",\n    \"package_id\": \"ef605bd3-a5a9-4d53-9e62-94558c740419\",\n    \"package_level\": \"BOX\",\n    \"production_order_number\": \"1664-34\",\n    \"sscc\": \"00046393795402905859\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "a83e4cbf-4bbb-4e51-aaa3-14327ff4914f",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "connection": "close",
+            "host": "n8n.shkuraev.ru",
+            "x-real-ip": "192.168.1.1",
+            "x-forwarded-for": "192.168.1.1",
+            "x-forwarded-proto": "https",
+            "content-length": "0",
+            "accept": "application/json, text/plain, */*",
+            "user-agent": "bruno-runtime/4.0.0",
+            "authorization": "Basic ***************************",
+            "request-start-time": "1788596340271",
+            "accept-encoding": "gzip, compress, deflate, br"
+          },
+          "params": {},
+          "query": {},
+          "body": {},
+          "webhookUrl": "https://n8n.shkuraev.ru/webhook-test/f6baf9d3-2cbc-41cf-a592-61d0b398bc57",
+          "executionMode": "test"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "64d5a8c0-41ee-469d-9fa1-7e612c2ec51d",
+  "meta": {
+    "instanceId": "b63c7721b80e36ec7286127ad26f08ed78f3d14148cd2e30db00a82c604f3f3c"
+  },
+  "nodeGroups": [],
+  "id": "2axrSmu1S0e0roKp",
+  "tags": [
+    {
+      "name": "ITE2026",
+      "id": "wOh1WyWrQOskF3ET",
+      "updatedAt": "2026-09-11T08:18:42.056Z",
+      "createdAt": "2026-09-11T08:18:42.056Z"
+    }
+  ]
+}
